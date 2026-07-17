@@ -1,26 +1,119 @@
 @import "tailwindcss";
 
+/* Dark mode is driven by a `.dark` class on <html> (next-themes class strategy),
+   not the OS preference — so the variant must follow that class. */
+@custom-variant dark (&:where(.dark, .dark *));
+
+/*
+  9Expert CI — ported from genesis-lab (Tailwind 3 + tailwind.config.js) to this
+  repo's Tailwind 4 CSS-first @theme syntax. The raw brand palette is identical
+  in both themes; only the SEMANTIC tokens differ between light and dark.
+
+  Accessibility rules baked into the tokens (do not "fix" by swapping colors):
+    - Small text / links on light bg  -> --9e-action (5.3:1). NEVER --9e-brand (3.4:1).
+    - --9e-brand: large text (>=24px, or >=18.66px bold) and icons only.
+    - --9e-air:   dark backgrounds only (2.3:1 on light — fails).
+    - --9e-lime:  CTA accent on dark backgrounds only.
+*/
+
 :root {
-  --background: #ffffff;
-  --foreground: #171717;
+  /* ---- Raw brand palette (theme-independent) ---- */
+  --9e-brand: #2486ff;
+  --9e-action: #005cff;
+  --9e-air: #48b0ff;
+  --9e-ice: #f8fafd;
+  --9e-lime: #d4f73f;
+  --9e-lime-lt: #d8f852;
+  --9e-lime-dk: #b8d930;
+  --9e-navy: #0d1b2a;
+  --9e-card: #132638;
+  --9e-border: #1a2d42;
+
+  /* ---- Semantic tokens — LIGHT ---- */
+  --page-bg: #ffffff;
+  --page-bg-muted: #f8fafd;
+  --surface: #ffffff;
+  --surface-muted: #f8fafd;
+  --surface-border: rgba(13, 27, 42, 0.12);
+  --text-primary: #0d1b2a;
+  --text-secondary: #465469;
+  --text-muted: #5e6a7e;
+
+  /* ---- Radii ---- */
+  --radius-sm: 8px;
+  --radius-md: 12px;
+  --radius-lg: 16px;
+  --radius-xl: 24px;
+
+  /* ---- Shadows ---- */
+  --shadow-sm: 0 1px 2px rgba(13, 27, 42, 0.06);
+  --shadow-md: 0 4px 12px rgba(13, 27, 42, 0.08);
+  --shadow-lg: 0 12px 32px rgba(13, 27, 42, 0.12);
+
+  /* ---- Motion ---- */
+  --ease-9e: cubic-bezier(0.4, 0, 0.2, 1);
+  --motion-micro: 200ms;
+  --motion-reveal: 300ms;
+  --motion-page: 500ms;
+
+  /* ---- Backward-compat tokens for the leftover create-next-app landing ---- */
+  --background: var(--page-bg);
+  --foreground: var(--text-primary);
+}
+
+.dark {
+  /* ---- Semantic tokens — DARK ---- */
+  --page-bg: #0d1b2a;
+  --page-bg-muted: #132638;
+  --surface: #132638;
+  --surface-muted: #1a2d42;
+  --surface-border: #1a2d42;
+  --text-primary: #f8fafd;
+  --text-secondary: #c5ceda;
+  --text-muted: #5e6a7e;
+
+  --shadow-sm: 0 1px 2px rgba(0, 0, 0, 0.3);
+  --shadow-md: 0 4px 12px rgba(0, 0, 0, 0.4);
+  --shadow-lg: 0 12px 32px rgba(0, 0, 0, 0.5);
+
+  --background: var(--page-bg);
+  --foreground: var(--text-primary);
 }
 
 @theme inline {
+  /* Expose brand + semantic tokens to Tailwind utilities where useful. */
+  --color-brand: var(--9e-brand);
+  --color-action: var(--9e-action);
+  --color-air: var(--9e-air);
+  --color-lime: var(--9e-lime);
+
+  --color-page-bg: var(--page-bg);
+  --color-page-bg-muted: var(--page-bg-muted);
+  --color-surface: var(--surface);
+  --color-surface-muted: var(--surface-muted);
+  --color-surface-border: var(--surface-border);
+  --color-text-primary: var(--text-primary);
+  --color-text-secondary: var(--text-secondary);
+  --color-text-muted: var(--text-muted);
+
+  /* Font families wired in the root layout via next/font/local. */
+  --font-thai: var(--font-thai);
+  --font-en: var(--font-en);
+  --font-sans: var(--font-en);
+
+  /* Backward-compat for the landing page. */
   --color-background: var(--background);
   --color-foreground: var(--foreground);
-  --font-sans: var(--font-geist-sans);
-  --font-mono: var(--font-geist-mono);
-}
 
-@media (prefers-color-scheme: dark) {
-  :root {
-    --background: #0a0a0a;
-    --foreground: #ededed;
-  }
+  /* Breakpoints. */
+  --breakpoint-sm: 640px;
+  --breakpoint-md: 768px;
+  --breakpoint-lg: 1024px;
+  --breakpoint-xl: 1280px;
 }
 
 body {
-  background: var(--background);
-  color: var(--foreground);
-  font-family: Arial, Helvetica, sans-serif;
+  background: var(--page-bg);
+  color: var(--text-primary);
+  font-family: var(--font-en), var(--font-thai), system-ui, sans-serif;
 }
