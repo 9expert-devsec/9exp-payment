@@ -8,17 +8,29 @@ export const dynamic = 'force-dynamic';
 // (Mirrored in vercel.json for the deployed function.)
 export const maxDuration = 60;
 
-// Launch a browser. On Vercel we use the Lambda-targeted @sparticuz/chromium
-// binary via puppeteer-core; locally we use the full puppeteer package, which
-// ships its own Chrome. The deployed path is the one that actually matters.
+// Chromium binary is NOT bundled. @sparticuz/chromium ships a ~65MB Brotli
+// payload in its bin/ dir that (a) no static file-tracer follows into the
+// serverless bundle and (b) exceeds Vercel's 50MB compressed function limit on
+// its own. So we use @sparticuz/chromium-min (JS only, no binary) and download
+// the matching Chromium pack to /tmp on cold start.
+//
+// IMPORTANT: this URL's version MUST match the exact @sparticuz/chromium-min
+// version pinned in package.json. It is pinned (no caret) so the two cannot
+// drift. Newer releases split the pack by CPU arch; Vercel Lambda is x86_64.
+const CHROMIUM_VERSION = '149.0.0';
+const CHROMIUM_PACK_URL = `https://github.com/Sparticuz/chromium/releases/download/v${CHROMIUM_VERSION}/chromium-v${CHROMIUM_VERSION}-pack.x64.tar`;
+
+// Launch a browser. On Vercel we download the Lambda-targeted Chromium via
+// @sparticuz/chromium-min + puppeteer-core; locally we use the full puppeteer
+// package, which ships its own Chrome. The deployed path is what matters.
 async function launchBrowser() {
   if (process.env.VERCEL) {
-    const chromium = (await import('@sparticuz/chromium')).default;
+    const chromium = (await import('@sparticuz/chromium-min')).default;
     const puppeteer = await import('puppeteer-core');
     return puppeteer.launch({
       args: chromium.args,
       defaultViewport: chromium.defaultViewport,
-      executablePath: await chromium.executablePath(),
+      executablePath: await chromium.executablePath(CHROMIUM_PACK_URL),
       headless: true,
     });
   }
