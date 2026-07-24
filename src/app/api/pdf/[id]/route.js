@@ -1,5 +1,8 @@
+import mongoose from 'mongoose';
 import { buildQuotationHtml } from '@/lib/quotation-html';
-import { quotation } from '@/lib/quotation-data';
+import { buildQuotationData } from '@/lib/quotation-data';
+import { dbConnect } from '@/lib/db/connect';
+import Quotation from '@/models/Quotation';
 
 // Chromium cannot run on the Edge runtime — force Node.
 export const runtime = 'nodejs';
@@ -38,10 +41,30 @@ async function launchBrowser() {
   return puppeteer.launch({ headless: true });
 }
 
-export async function GET() {
+export async function GET(request, { params }) {
   let browser;
   try {
-    const html = buildQuotationHtml(quotation);
+    const { id } = await params;
+
+    if (!mongoose.isValidObjectId(id)) {
+      return new Response(JSON.stringify({ error: 'Quotation not found' }), {
+        status: 404,
+        headers: { 'Content-Type': 'application/json' },
+      });
+    }
+
+    await dbConnect();
+    const doc = await Quotation.findById(id).lean();
+    if (!doc) {
+      return new Response(JSON.stringify({ error: 'Quotation not found' }), {
+        status: 404,
+        headers: { 'Content-Type': 'application/json' },
+      });
+    }
+
+    // Renders purely from the stored snapshot — the live Course is never read,
+    // so this document looks the same on every future request.
+    const html = buildQuotationHtml(buildQuotationData(doc));
     browser = await launchBrowser();
     const page = await browser.newPage();
     // waitUntil networkidle0 not needed: all assets are inlined data URIs,
@@ -59,7 +82,7 @@ export async function GET() {
       status: 200,
       headers: {
         'Content-Type': 'application/pdf',
-        'Content-Disposition': 'inline; filename="9EXPERT-QE6907004.pdf"',
+        'Content-Disposition': `inline; filename="9EXPERT-${doc.quotationNo}.pdf"`,
         'Cache-Control': 'no-store',
       },
     });

@@ -81,19 +81,19 @@ export default async function QuotationsPage({ searchParams }) {
                         <td className="px-4 py-3 text-right whitespace-nowrap font-semibold text-[var(--text-primary)]">
                           {formatMoney(q.pricing?.total)}
                         </td>
+                        {/* PDFs are rendered on demand from the stored snapshot,
+                            not saved to storage, so every row always has a link.
+                            `pdfUrl` stays in the schema for Phase 4, which may
+                            persist a rendered copy. */}
                         <td className="px-4 py-3">
-                          {q.pdfUrl ? (
-                            <a
-                              href={q.pdfUrl}
-                              target="_blank"
-                              rel="noopener noreferrer"
-                              className="text-[var(--9e-action)] hover:underline"
-                            >
-                              เปิด
-                            </a>
-                          ) : (
-                            <span className="text-[var(--text-muted)]">—</span>
-                          )}
+                          <a
+                            href={`/api/pdf/${id}`}
+                            target="_blank"
+                            rel="noopener noreferrer"
+                            className="text-[var(--9e-action)] hover:underline"
+                          >
+                            เปิด
+                          </a>
                         </td>
                         <td className="px-4 py-3">
                           {q.emailSentAt ? (
