@@ -1,16 +1,17 @@
 # 9exp-payment — Project Rules for Claude Code
 
 ## Version control
-- **NEVER run git commands.** Do not `git add`, `git commit`, `git push`, or create branches.
-- The developer handles all version control manually.
-- When a change reaches a natural stopping point, **say so and suggest a commit message** — do not execute it.
+- Claude Code **may commit** but must **NEVER push**. The developer pushes (a push to `main` deploys to Vercel).
+- **Never create, rename, or delete a branch.** Work only on the branch named in the prompt.
+- Stage files **by explicit path only** — never `git add -A` or `git add .`.
+- Nothing under `prompts/` is ever staged or committed.
 
 ## Language
 - All code, comments, commit message suggestions, and identifiers: **English only**.
 - Thai text appears only inside user-facing UI strings and PDF content.
 
 ## Stack (locked)
-- Next.js 15 (App Router) · **JavaScript + JSX only — no TypeScript**
+- Next.js 16 (App Router) · **JavaScript + JSX only — no TypeScript**
 - Tailwind CSS · MongoDB (Mongoose) · Vercel · Cloudinary
 - Fonts: **PDF → DB Heavent** (accounting document, must stay stable).
   **Web UI → LINE Seed Sans TH (headings/Thai) + Google Sans (body/EN/numerals)**.
