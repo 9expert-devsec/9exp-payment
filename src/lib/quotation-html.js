@@ -4,6 +4,22 @@ import { getAssets } from './assets.js';
 const BLUE = '#0000cc';
 const RED = '#e0001b';
 
+/**
+ * HTML-escape a dynamic value. Customer-typed strings (names, company,
+ * address, emails) reach this template, which headless Chromium then loads,
+ * so every value that is not a constant written in this repo goes through
+ * here. null/undefined render as ''.
+ */
+function esc(value) {
+  if (value == null) return '';
+  return String(value)
+    .replace(/&/g, '&amp;')
+    .replace(/</g, '&lt;')
+    .replace(/>/g, '&gt;')
+    .replace(/"/g, '&quot;')
+    .replace(/'/g, '&#39;');
+}
+
 // A blue Thai label with a smaller English translation beneath it.
 function label(th, en) {
   return `<div class="lbl"><span class="th">${th}</span><span class="en">${en}</span></div>`;
@@ -13,7 +29,7 @@ function label(th, en) {
 function pair(th, en, value) {
   return `<tr>
     <td class="pair-label">${label(th, en)}</td>
-    <td class="pair-value">${value ?? ''}</td>
+    <td class="pair-value">${esc(value)}</td>
   </tr>`;
 }
 
@@ -212,19 +228,19 @@ export function buildQuotationHtml(data) {
     </thead>
     <tbody>
       <tr>
-        <td class="col-no">${data.item.no}</td>
-        <td class="col-code">${data.item.productCode}</td>
+        <td class="col-no">${esc(data.item.no)}</td>
+        <td class="col-code">${esc(data.item.productCode)}</td>
         <td class="col-desc">
-          <div class="desc-name">${data.item.productName}</div>
-          <div class="desc-email"><b>อีเมลผู้เข้าอบรม :</b> ${data.item.attendeeEmail}</div>
+          <div class="desc-name">${esc(data.item.productName)}</div>
+          <div class="desc-email"><b>อีเมลผู้เข้าอบรม :</b> ${esc(data.item.attendeeEmail)}</div>
           <div class="desc-bullets">
             <div>- ระยะเวลาเรียน 365 วัน นับจากวันที่อนุมัติ</div>
             <div>- เรียนผ่าน https://academy.9experttraining.com</div>
           </div>
         </td>
-        <td class="col-qty">${data.item.qty}</td>
-        <td class="col-unit">${data.item.unitPrice}</td>
-        <td class="col-amt">${data.item.amount}</td>
+        <td class="col-qty">${esc(data.item.qty)}</td>
+        <td class="col-unit">${esc(data.item.unitPrice)}</td>
+        <td class="col-amt">${esc(data.item.amount)}</td>
       </tr>
     </tbody>
   </table>
@@ -237,21 +253,21 @@ export function buildQuotationHtml(data) {
           <div class="tc-head">Term &amp; Condition :</div>
           ${terms}
         </div>
-        <div class="baht">${data.bahtText}</div>
+        <div class="baht">${esc(data.bahtText)}</div>
       </td>
       <td class="totals-right">
         <table>
           <tr class="sum-row">
             <td class="sum-label">รวมราคา Amount</td>
-            <td class="sum-amt">${data.amount}</td>
+            <td class="sum-amt">${esc(data.amount)}</td>
           </tr>
           <tr class="sum-row">
             <td class="sum-label">ภาษีมูลค่าเพิ่ม VAT7%</td>
-            <td class="sum-amt">${data.vat}</td>
+            <td class="sum-amt">${esc(data.vat)}</td>
           </tr>
           <tr class="sum-row sum-net">
             <td class="sum-label">ยอดเงินสุทธิ Net Total</td>
-            <td class="sum-amt">${data.netTotal}</td>
+            <td class="sum-amt">${esc(data.netTotal)}</td>
           </tr>
         </table>
       </td>
@@ -272,7 +288,7 @@ export function buildQuotationHtml(data) {
           <div class="val">${data.quotedBy.email}<br />Tel : ${data.quotedBy.tel}</div>
         </div>
         <div class="sign-cell">
-          ${inlineLabel('วันที่', '/ Date')} ${data.date}
+          ${inlineLabel('วันที่', '/ Date')} ${esc(data.date)}
         </div>
         <div class="sign-cell">
           ${inlineLabel('ผู้สั่งซื้อ', '/ Purchase Approve By')}

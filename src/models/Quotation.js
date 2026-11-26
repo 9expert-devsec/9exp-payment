@@ -64,6 +64,10 @@ const pricingSchema = new mongoose.Schema(
 const quotationSchema = new mongoose.Schema(
   {
     quotationNo: { type: String, required: true, unique: true, index: true },
+    // Capability token for the public success page and PDF (`?t=`). Not
+    // indexed: lookups stay by _id, the token is only compared afterwards.
+    // null = admin-only (see src/lib/quotation-access.js).
+    publicToken: { type: String, default: null },
     course: courseSnapshotSchema,
     coordinator: { type: personSchema, required: true },
     attendeesCount: { type: Number, min: 1, max: 50, default: 1 },

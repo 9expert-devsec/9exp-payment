@@ -3,13 +3,19 @@ import mongoose from 'mongoose';
 import { notFound } from 'next/navigation';
 import { dbConnect } from '@/lib/db/connect';
 import Quotation from '@/models/Quotation';
+import { auth } from '@/lib/auth/options';
+import { canViewQuotation } from '@/lib/quotation-access';
 import { formatMoney, formatBuddhistDate } from '@/lib/format';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 
 export const dynamic = 'force-dynamic';
 
+// The URL carries the access token: keep it out of search indexes and out of
+// the Referer header sent to any page linked from here.
 export const metadata = {
   title: 'ใบเสนอราคา — 9Expert',
+  robots: { index: false, follow: false },
+  referrer: 'no-referrer',
 };
 
 /** One label/value row in the summary tables. */
@@ -30,13 +36,22 @@ function Row({ label, value, strong = false }) {
   );
 }
 
-export default async function QuotationSuccessPage({ params }) {
+export default async function QuotationSuccessPage({ params, searchParams }) {
   const { id } = await params;
+  const { t } = await searchParams;
   if (!mongoose.isValidObjectId(id)) notFound();
 
   await dbConnect();
   const doc = await Quotation.findById(id).lean();
   if (!doc) notFound();
+
+  // 404 (not 403) on denial, so the response does not confirm the id exists.
+  const session = await auth();
+  if (!canViewQuotation(doc, t, session)) notFound();
+  const pdfHref =
+    typeof t === 'string' && t
+      ? `/api/pdf/${id}?t=${encodeURIComponent(t)}`
+      : `/api/pdf/${id}`;
 
   const pricing = doc.pricing || {};
   const coordinator = doc.coordinator || {};
@@ -104,7 +119,7 @@ export default async function QuotationSuccessPage({ params }) {
 
       <div className="flex flex-col gap-3 sm:flex-row">
         <a
-          href={`/api/pdf/${id}`}
+          href={pdfHref}
           target="_blank"
           rel="noopener noreferrer"
           className="inline-flex h-11 flex-1 items-center justify-center rounded-[var(--radius-md)] bg-[var(--9e-action)] px-6 text-base font-medium text-white transition-colors hover:bg-[var(--9e-brand)]"

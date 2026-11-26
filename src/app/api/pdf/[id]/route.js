@@ -3,6 +3,8 @@ import { buildQuotationHtml } from '@/lib/quotation-html';
 import { buildQuotationData } from '@/lib/quotation-data';
 import { dbConnect } from '@/lib/db/connect';
 import Quotation from '@/models/Quotation';
+import { auth } from '@/lib/auth/options';
+import { canViewQuotation } from '@/lib/quotation-access';
 
 // Chromium cannot run on the Edge runtime — force Node.
 export const runtime = 'nodejs';
@@ -41,32 +43,52 @@ async function launchBrowser() {
   return puppeteer.launch({ headless: true });
 }
 
+// Every response from this route may describe a customer's document: never
+// cache it in a shared cache and never let it be indexed.
+const PRIVATE_HEADERS = {
+  'Cache-Control': 'private, no-store',
+  'X-Robots-Tag': 'noindex',
+};
+
+function notFoundResponse() {
+  return new Response(JSON.stringify({ error: 'Quotation not found' }), {
+    status: 404,
+    headers: { 'Content-Type': 'application/json', ...PRIVATE_HEADERS },
+  });
+}
+
 export async function GET(request, { params }) {
   let browser;
   try {
     const { id } = await params;
+    const token = new URL(request.url).searchParams.get('t');
 
-    if (!mongoose.isValidObjectId(id)) {
-      return new Response(JSON.stringify({ error: 'Quotation not found' }), {
-        status: 404,
-        headers: { 'Content-Type': 'application/json' },
-      });
-    }
+    if (!mongoose.isValidObjectId(id)) return notFoundResponse();
 
     await dbConnect();
     const doc = await Quotation.findById(id).lean();
-    if (!doc) {
-      return new Response(JSON.stringify({ error: 'Quotation not found' }), {
-        status: 404,
-        headers: { 'Content-Type': 'application/json' },
-      });
-    }
+    if (!doc) return notFoundResponse();
+
+    // Same 404 as a missing id, so a denial does not confirm the id exists.
+    const session = await auth();
+    if (!canViewQuotation(doc, token, session)) return notFoundResponse();
 
     // Renders purely from the stored snapshot — the live Course is never read,
     // so this document looks the same on every future request.
     const html = buildQuotationHtml(buildQuotationData(doc));
     browser = await launchBrowser();
     const page = await browser.newPage();
+
+    // Lock the page down before loading untrusted-content HTML. Every asset is
+    // an inlined data: URI (src/lib/assets.js), so the page never legitimately
+    // needs script or the network — any other request is blocked.
+    await page.setJavaScriptEnabled(false);
+    await page.setRequestInterception(true);
+    page.on('request', (req) => {
+      if (req.url().startsWith('data:')) req.continue();
+      else req.abort();
+    });
+
     // waitUntil networkidle0 not needed: all assets are inlined data URIs,
     // but we still wait for fonts to be ready before printing.
     await page.setContent(html, { waitUntil: 'load' });
@@ -83,14 +105,14 @@ export async function GET(request, { params }) {
       headers: {
         'Content-Type': 'application/pdf',
         'Content-Disposition': `inline; filename="9EXPERT-${doc.quotationNo}.pdf"`,
-        'Cache-Control': 'no-store',
+        ...PRIVATE_HEADERS,
       },
     });
   } catch (err) {
     console.error('PDF generation failed:', err);
     return new Response(
       JSON.stringify({ error: 'PDF generation failed', detail: String(err?.message || err) }),
-      { status: 500, headers: { 'Content-Type': 'application/json' } }
+      { status: 500, headers: { 'Content-Type': 'application/json', ...PRIVATE_HEADERS } }
     );
   } finally {
     if (browser) await browser.close();

@@ -150,7 +150,7 @@ export function QuotationForm({ courses }) {
     try {
       const result = await createQuotationAction(values);
       if (result?.ok) {
-        router.push(`/quotation/${result.id}`);
+        router.push(`/quotation/${result.id}?t=${result.token}`);
       } else {
         setSubmitError(result?.error || 'ไม่สามารถสร้างใบเสนอราคาได้ กรุณาลองใหม่');
       }

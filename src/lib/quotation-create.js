@@ -1,3 +1,4 @@
+import crypto from 'node:crypto';
 import mongoose from 'mongoose';
 import { dbConnect } from './db/connect.js';
 import Course from '../models/Course.js';
@@ -74,10 +75,14 @@ export async function createQuotation(values, { ipAddress = '' } = {}) {
   //    the kind of gap an auditor asks about.
   const quotationNo = await nextQuotationNo();
 
+  // Unguessable capability token for the public page/PDF links (128 bits).
+  const publicToken = crypto.randomBytes(16).toString('hex');
+
   // 6. Insert immediately after reserving, keeping the reserved-but-unused
   //    window as small as it can be.
   const doc = await Quotation.create({
     quotationNo,
+    publicToken,
     course: courseSnapshot,
     coordinator: {
       firstName: data.coordinator.firstName,
@@ -104,5 +109,10 @@ export async function createQuotation(values, { ipAddress = '' } = {}) {
     ipAddress,
   });
 
-  return { ok: true, id: String(doc._id), quotationNo: doc.quotationNo };
+  return {
+    ok: true,
+    id: String(doc._id),
+    quotationNo: doc.quotationNo,
+    token: doc.publicToken,
+  };
 }
