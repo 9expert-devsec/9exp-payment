@@ -44,6 +44,33 @@ function inlineLabel(th, en) {
   return `<span class="th-inline">${th}</span> <span class="en-inline">${en}</span>`;
 }
 
+/**
+ * The legacy red promotion notice under the line-item description, or '' when
+ * there is no promotion (so the document is unchanged). Wording is verbatim
+ * from the legacy PHP document. Without a date range only the price lines are
+ * printed — the date lines make no sense without a date.
+ */
+function promoBlock(promo) {
+  if (!promo) return '';
+  const lines = [
+    'โปรโมชัน',
+    `จากราคาปกติ ${esc(promo.listPrice)} บาท (รวม VAT 7%)`,
+    `เหลือเพียง ${esc(promo.sellPrice)} บาท (รวม VAT 7%) ต่อท่าน`,
+  ];
+  if (promo.dateRange) {
+    lines.push(
+      '',
+      `โปรโมชันนี้สำหรับการชำระเงินภายในวันที่ ${esc(promo.dateRange)} เท่านั้น`,
+      '',
+      'หากชำระเงินหลังจากวันดังกล่าว บริษัทขอสงวนสิทธิ์ในการยกเลิกส่วนลด และคิดค่าบริการตามราคาปกติ'
+    );
+  }
+  const divs = lines
+    .map((l) => (l ? `<div>${l}</div>` : '<div class="gap"></div>'))
+    .join('');
+  return `\n          <div class="desc-promo">${divs}</div>`;
+}
+
 export function buildQuotationHtml(data) {
   const { logo, fontRegular, fontBold } = getAssets();
   const c = data.company;
@@ -137,6 +164,10 @@ export function buildQuotationHtml(data) {
   .desc-email b { font-weight: bold; }
   .desc-bullets { margin-top: 16px; }
   .desc-bullets div { line-height: 1.3; }
+  .desc-promo { color: #c0392b; font-size: inherit; line-height: 1.6; margin-top: 16px; }
+  /* A short spacer, not a full blank line: a full 1.6 line per gap pushes a
+     promotion quotation onto a second A4 page. */
+  .desc-promo .gap { height: 8px; }
 
   /* ---- Totals ---- */
   .totals-left { width: 62%; border-right: 1px solid #000; vertical-align: top; padding: 0; }
@@ -236,7 +267,7 @@ export function buildQuotationHtml(data) {
           <div class="desc-bullets">
             <div>- ระยะเวลาเรียน 365 วัน นับจากวันที่อนุมัติ</div>
             <div>- เรียนผ่าน https://academy.9experttraining.com</div>
-          </div>
+          </div>${promoBlock(data.item.promotion)}
         </td>
         <td class="col-qty">${esc(data.item.qty)}</td>
         <td class="col-unit">${esc(data.item.unitPrice)}</td>

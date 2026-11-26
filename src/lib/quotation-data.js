@@ -12,6 +12,15 @@ import { bahtText } from './baht-text.js';
  * handing it a Number would render "4205.61" and silently lose the thousands
  * separator on an accounting document.
  *
+ * `item.promotion` is either null (no promotion block is printed) or an object
+ * of PRE-FORMATTED STRINGS:
+ *   { listPrice: "5,000.00", sellPrice: "4,500.00", dateRange: "1–31 ธันวาคม 2569" }
+ * It is non-null only when the snapshot says the promotion was active
+ * (`course.isPromotion === true`) AND the list price exceeds the sell price.
+ * `dateRange` is '' when either promotion date is missing (including docs
+ * created before the dates were snapshotted); the template then prints only
+ * the price lines.
+ *
  * The Thai strings below are legally-reviewed accounting boilerplate copied
  * verbatim from reference/9EXPERT-QE6907004.pdf. Do not reword them.
  */
@@ -96,6 +105,56 @@ function lineItemEmail(doc) {
   return doc?.coordinator?.email || '';
 }
 
+const THAI_MONTHS = [
+  'มกราคม', 'กุมภาพันธ์', 'มีนาคม', 'เมษายน', 'พฤษภาคม', 'มิถุนายน',
+  'กรกฎาคม', 'สิงหาคม', 'กันยายน', 'ตุลาคม', 'พฤศจิกายน', 'ธันวาคม',
+];
+
+/** {d, m (1-12), y (Buddhist)} of a date in Asia/Bangkok. */
+function bangkokThaiParts(date) {
+  const parts = new Intl.DateTimeFormat('en-US', {
+    timeZone: 'Asia/Bangkok',
+    year: 'numeric',
+    month: 'numeric',
+    day: 'numeric',
+  }).formatToParts(new Date(date));
+  const get = (t) => Number(parts.find((p) => p.type === t).value);
+  return { d: get('day'), m: get('month'), y: get('year') + 543 };
+}
+
+/**
+ * Promotion date range in the legacy buildPromotionText() shapes:
+ *   same month+year: "1–31 ธันวาคม 2569"
+ *   same year:       "15 พฤศจิกายน – 10 ธันวาคม 2569"
+ *   different years: "20 ธันวาคม 2569 – 10 มกราคม 2570"
+ * Returns '' when either date is missing or invalid.
+ */
+function promotionDateRange(start, end) {
+  if (!start || !end) return '';
+  if (Number.isNaN(new Date(start).getTime()) || Number.isNaN(new Date(end).getTime())) {
+    return '';
+  }
+  const s = bangkokThaiParts(start);
+  const e = bangkokThaiParts(end);
+  const sMonth = THAI_MONTHS[s.m - 1];
+  const eMonth = THAI_MONTHS[e.m - 1];
+  if (s.y === e.y && s.m === e.m) return `${s.d}–${e.d} ${eMonth} ${e.y}`;
+  if (s.y === e.y) return `${s.d} ${sMonth} – ${e.d} ${eMonth} ${e.y}`;
+  return `${s.d} ${sMonth} ${s.y} – ${e.d} ${eMonth} ${e.y}`;
+}
+
+/** The line item's promotion block data, or null when none is printed. */
+function itemPromotion(course) {
+  const price = Number(course?.price);
+  const sellPrice = Number(course?.sellPrice);
+  if (course?.isPromotion !== true || !(price > sellPrice)) return null;
+  return {
+    listPrice: formatMoney(price),
+    sellPrice: formatMoney(sellPrice),
+    dateRange: promotionDateRange(course.promotionStart, course.promotionEnd),
+  };
+}
+
 /**
  * Build the template payload for one persisted Quotation.
  *
@@ -138,6 +197,7 @@ export function buildQuotationData(doc) {
       qty: pricing.seats ?? 0,
       unitPrice: formatMoney(pricing.unitPriceExVat),
       amount: formatMoney(pricing.subtotal),
+      promotion: itemPromotion(course),
     },
 
     amount: formatMoney(pricing.subtotal),

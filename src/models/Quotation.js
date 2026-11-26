@@ -16,6 +16,10 @@ const courseSnapshotSchema = new mongoose.Schema(
     price: { type: Number }, // list price at snapshot time
     sellPrice: { type: Number }, // VAT-inclusive sell price at snapshot time
     isPromotion: { type: Boolean },
+    // Promotion window at snapshot time (printed in the promotion block).
+    // Docs created before these fields existed simply lack them.
+    promotionStart: { type: Date, default: null },
+    promotionEnd: { type: Date, default: null },
     promoNote: { type: String },
     notes: { type: String },
   },

@@ -55,6 +55,8 @@ export async function createQuotation(values, { ipAddress = '' } = {}) {
     price: course.price,
     sellPrice: course.sellPrice,
     isPromotion: isPromotionActive(course),
+    promotionStart: course.promotionStart || null,
+    promotionEnd: course.promotionEnd || null,
     promoNote: course.notes || '',
     notes: course.notes || '',
   };
