@@ -81,7 +81,23 @@ const quotationSchema = new mongoose.Schema(
     pricing: pricingSchema,
     pdfUrl: { type: String, default: null },
     notes: { type: String, trim: true, maxlength: 500 },
-    emailSentAt: { type: Date, default: null },
+    emailSentAt: { type: Date, default: null }, // last SUCCESSFUL send
+    // Email delivery state (src/lib/email/send-quotation-email.js).
+    //   pending: not attempted yet / in flight · sent · failed · skipped (no
+    //   Postmark token configured in this environment).
+    emailStatus: {
+      type: String,
+      enum: ['pending', 'sent', 'failed', 'skipped'],
+      default: 'pending',
+    },
+    emailError: { type: String, default: null, maxlength: 500 },
+    emailAttempts: { type: Number, default: 0 }, // every send attempt, any trigger
+    lastEmailAttemptAt: { type: Date, default: null }, // drives the 120s resend spacing
+    postmarkMessageId: { type: String, default: null },
+    // Resends requested by the CUSTOMER from the success page (capped at 3).
+    // Kept separate from emailAttempts, which also counts the create send and
+    // admin resends, so the customer cap cannot be eaten by staff actions.
+    customerResendCount: { type: Number, default: 0 },
     ipAddress: { type: String },
   },
   { timestamps: true }

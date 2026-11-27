@@ -3,8 +3,11 @@ import { dbConnect } from '@/lib/db/connect';
 import Quotation from '@/models/Quotation';
 import { formatMoney, formatBuddhistDate } from '@/lib/format';
 import { Card } from '@/components/ui/card';
+import { EmailCell } from './email-cell';
 
 export const dynamic = 'force-dynamic';
+// The admin resend action on this page renders the PDF with Chromium.
+export const maxDuration = 60;
 
 const PAGE_SIZE = 20;
 
@@ -96,13 +99,12 @@ export default async function QuotationsPage({ searchParams }) {
                           </a>
                         </td>
                         <td className="px-4 py-3">
-                          {q.emailSentAt ? (
-                            <span className="text-green-600 dark:text-green-400">
-                              ส่งแล้ว
-                            </span>
-                          ) : (
-                            <span className="text-[var(--text-muted)]">ยังไม่ส่ง</span>
-                          )}
+                          <EmailCell
+                            id={id}
+                            status={q.emailStatus || (q.emailSentAt ? 'sent' : 'pending')}
+                            sentLabel={q.emailSentAt ? formatBuddhistDate(q.emailSentAt) : ''}
+                            error={q.emailError || ''}
+                          />
                         </td>
                       </tr>
                     );

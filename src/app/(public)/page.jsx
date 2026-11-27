@@ -6,6 +6,10 @@ import { PUBLIC_EMAIL, PUBLIC_PHONE, PUBLIC_PHONE_TEL } from '@/lib/public-conta
 import { QuotationForm } from './quotation-form';
 
 export const dynamic = 'force-dynamic';
+// The confirm server action on this page schedules the quotation email with
+// after(), which renders the PDF with Chromium; on Vercel after() runs within
+// this page's max duration (server actions inherit the page's limit).
+export const maxDuration = 60;
 
 export const metadata = {
   title: 'ขอใบเสนอราคา — 9Expert',

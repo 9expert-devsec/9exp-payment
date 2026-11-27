@@ -10,8 +10,18 @@ const nextConfig = {
   // '/api/pdf/[id]' when the route began taking a quotation id — a stale key
   // fails SILENTLY: the build still succeeds, but the fonts are absent from the
   // Lambda and the PDF renders in a fallback face.
+  //
+  // Every route that RENDERS a PDF needs this entry (PDFs are now also rendered
+  // by server actions: the confirm action emails the PDF, and both resend
+  // actions re-render it). Keys are picomatch globs matched against the route
+  // path with `contains: true` — so '/' matches EVERY route, which is fine
+  // here: the assets are ~450 KB. The explicit keys document the routes that
+  // actually need them.
   outputFileTracingIncludes: {
     '/api/pdf/[id]': ['./fonts/**', './imgs/**'],
+    '/': ['./fonts/**', './imgs/**'], // hosts the confirm action (after() email)
+    '/quotation/[id]': ['./fonts/**', './imgs/**'], // hosts the customer resend
+    '/admin/quotations': ['./fonts/**', './imgs/**'], // hosts the admin resend
   },
 };
 

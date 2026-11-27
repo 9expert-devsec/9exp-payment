@@ -156,6 +156,36 @@ function itemPromotion(course) {
 }
 
 /**
+ * The promotion notice as plain-text lines, for surfaces other than the PDF
+ * (the quotation email). '' marks a blank gap between paragraphs. Wording is
+ * the legacy notice, identical to the PDF's `.desc-promo` block in
+ * src/lib/quotation-html.js (that file keeps its own copy because the document
+ * template is frozen); a verification check asserts the two stay identical.
+ * Without a date range only the price lines are returned.
+ *
+ * @param {{listPrice: string, sellPrice: string, dateRange: string} | null} promo
+ *        `buildQuotationData(doc).item.promotion`.
+ * @returns {string[]}  [] when there is no promotion.
+ */
+export function promotionLines(promo) {
+  if (!promo) return [];
+  const lines = [
+    'โปรโมชัน',
+    `จากราคาปกติ ${promo.listPrice} บาท (รวม VAT 7%)`,
+    `เหลือเพียง ${promo.sellPrice} บาท (รวม VAT 7%) ต่อท่าน`,
+  ];
+  if (promo.dateRange) {
+    lines.push(
+      '',
+      `โปรโมชันนี้สำหรับการชำระเงินภายในวันที่ ${promo.dateRange} เท่านั้น`,
+      '',
+      'หากชำระเงินหลังจากวันดังกล่าว บริษัทขอสงวนสิทธิ์ในการยกเลิกส่วนลด และคิดค่าบริการตามราคาปกติ'
+    );
+  }
+  return lines;
+}
+
+/**
  * Build the template payload for one persisted Quotation.
  *
  * Reads ONLY the stored snapshot (`doc.course`, `doc.pricing`) — never the live

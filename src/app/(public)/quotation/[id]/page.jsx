@@ -8,8 +8,12 @@ import { canViewQuotation } from '@/lib/quotation-access';
 import { formatMoney, formatBuddhistDate } from '@/lib/format';
 import { Stepper } from '@/components/public/stepper';
 import { CheckIcon, FileIcon, PlusIcon } from '@/components/public/icons';
+import { ResendButton } from './resend-button';
 
 export const dynamic = 'force-dynamic';
+// The resend action on this page renders the PDF with Chromium before sending;
+// cold starts need the headroom (server actions inherit the page's limit).
+export const maxDuration = 60;
 
 // The URL carries the access token: keep it out of search indexes and out of
 // the Referer header sent to any page linked from here.
@@ -127,14 +131,17 @@ export default async function QuotationSuccessPage({ params, searchParams }) {
           <MetaTile label="ออกในนาม" value={billedTo} className="hidden lg:block" />
         </div>
 
-        <a
-          href={pdfHref}
-          target="_blank"
-          rel="noopener noreferrer"
-          className="font-thai mt-5 flex h-[52px] w-full items-center justify-center rounded-xl bg-[var(--9e-action)] px-6 text-base font-bold text-white transition-colors hover:bg-[#004fe0] focus-visible:outline-none focus-visible:ring-4 focus-visible:ring-[rgba(36,134,255,0.3)]"
-        >
-          ดาวน์โหลด PDF
-        </a>
+        <div className="mt-5 grid grid-cols-1 gap-3 lg:grid-cols-2">
+          <a
+            href={pdfHref}
+            target="_blank"
+            rel="noopener noreferrer"
+            className="font-thai flex h-[52px] w-full items-center justify-center rounded-xl bg-[var(--9e-action)] px-6 text-base font-bold text-white transition-colors hover:bg-[#004fe0] focus-visible:outline-none focus-visible:ring-4 focus-visible:ring-[rgba(36,134,255,0.3)]"
+          >
+            ดาวน์โหลด PDF
+          </a>
+          <ResendButton id={id} token={typeof t === 'string' ? t : undefined} />
+        </div>
       </section>
 
       {/* ---- Next steps ---- */}

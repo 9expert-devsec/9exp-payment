@@ -1,11 +1,13 @@
 'use server';
 
 import { headers } from 'next/headers';
+import { after } from 'next/server';
 import { buildQuotationDraft, createQuotation } from '@/lib/quotation-create';
 import { buildQuotationData } from '@/lib/quotation-data';
 import { buildQuotationHtml } from '@/lib/quotation-html';
 import { periodKey } from '@/lib/quotation-number';
 import { bahtText } from '@/lib/baht-text';
+import { sendQuotationEmail } from '@/lib/email/send-quotation-email';
 
 /**
  * Best-effort client IP. Vercel sits behind a proxy, so the socket address is
@@ -30,7 +32,17 @@ async function clientIp() {
 export async function createQuotationAction(values) {
   try {
     const ipAddress = await clientIp();
-    return await createQuotation(values, { ipAddress });
+    const result = await createQuotation(values, { ipAddress });
+    if (result?.ok) {
+      // Render the PDF and email it AFTER the response, so the customer is
+      // redirected to the success page immediately. On Vercel, after() keeps
+      // the function alive (waitUntil) up to the page's maxDuration (60s, set
+      // in ./page.jsx). sendQuotationEmail never throws; it records the outcome
+      // on the quotation (emailStatus).
+      const id = result.id;
+      after(() => sendQuotationEmail(id, { trigger: 'create' }));
+    }
+    return result;
   } catch (err) {
     console.error('createQuotationAction failed:', err);
     return { ok: false, error: 'เกิดข้อผิดพลาดในระบบ กรุณาลองใหม่อีกครั้ง' };
