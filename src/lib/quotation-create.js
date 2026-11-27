@@ -48,6 +48,11 @@ export async function buildQuotationDraft(values) {
   if (!course || course.isActive !== true) {
     return { ok: false, error: 'หลักสูตรนี้ไม่เปิดให้ขอใบเสนอราคาแล้ว' };
   }
+  // A course with no price configured must never produce a 0-baht quotation.
+  // The public page already hides these; this rejects a forged courseId.
+  if (!(Number(course.sellPrice) > 0)) {
+    return { ok: false, error: 'หลักสูตรนี้ยังไม่เปิดให้ขอใบเสนอราคา' };
+  }
 
   // 3. Pricing from the DB course and the validated seat count only.
   const pricing = computePricing(course, data.attendeesCount);

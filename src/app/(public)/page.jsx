@@ -1,7 +1,8 @@
 import { dbConnect } from '@/lib/db/connect';
 import Course from '@/models/Course';
 import { isPromotionActive } from '@/lib/format';
-import { Card } from '@/components/ui/card';
+import { MailIcon, PhoneIcon } from '@/components/public/icons';
+import { PUBLIC_EMAIL, PUBLIC_PHONE, PUBLIC_PHONE_TEL } from '@/lib/public-contact';
 import { QuotationForm } from './quotation-form';
 
 export const dynamic = 'force-dynamic';
@@ -14,7 +15,9 @@ export const metadata = {
 export default async function PublicQuotationPage() {
   await dbConnect();
 
-  const docs = await Course.find({ isActive: true })
+  // Only priced courses: a course whose sellPrice is still 0 would produce a
+  // 0-baht quotation. buildQuotationDraft() rejects those server-side too.
+  const docs = await Course.find({ isActive: true, sellPrice: { $gt: 0 } })
     .sort({ sortOrder: 1, courseName: 1 })
     .lean();
 
@@ -37,15 +40,28 @@ export default async function PublicQuotationPage() {
 
   if (courses.length === 0) {
     return (
-      <div className="mx-auto max-w-[720px] px-4 py-10 lg:max-w-[1248px] lg:px-6">
-        <Card className="p-10 text-center">
-          <p className="text-[var(--text-secondary)]">
+      <div className="mx-auto max-w-[720px] px-4 py-10 lg:py-16">
+        <section className="rounded-2xl border border-[var(--surface-border)] bg-white px-6 py-10 text-center lg:px-10 lg:py-14">
+          <span className="font-en inline-block rounded-full bg-[var(--brand-tint)] px-3 py-1 text-xs font-bold tracking-wider text-[var(--9e-action)]">
+            ONLINE VIDEO COURSE
+          </span>
+          <h1 className="font-thai mt-4 text-2xl font-bold text-[var(--text-primary)]">
             ขณะนี้ยังไม่มีหลักสูตรเปิดให้ขอใบเสนอราคา
+          </h1>
+          <p className="mt-2 text-sm text-[var(--text-secondary)]">
+            กรุณาติดต่อเจ้าหน้าที่เพื่อขอใบเสนอราคา
           </p>
-          <p className="mt-1 text-sm text-[var(--text-muted)]">
-            กรุณาติดต่อ training@9expert.co.th หรือโทร 02-219-4304
-          </p>
-        </Card>
+          <div className="mt-6 flex flex-col items-center justify-center gap-3 text-sm sm:flex-row sm:gap-6">
+            <a href={PUBLIC_PHONE_TEL} className="flex items-center gap-2 font-medium text-[var(--9e-action)] hover:underline">
+              <PhoneIcon className="h-[18px] w-[18px]" />
+              {PUBLIC_PHONE}
+            </a>
+            <a href={`mailto:${PUBLIC_EMAIL}`} className="flex items-center gap-2 font-medium text-[var(--9e-action)] hover:underline">
+              <MailIcon className="h-[18px] w-[18px]" />
+              {PUBLIC_EMAIL}
+            </a>
+          </div>
+        </section>
       </div>
     );
   }
