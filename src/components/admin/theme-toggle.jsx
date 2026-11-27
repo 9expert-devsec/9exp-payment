@@ -1,15 +1,25 @@
 'use client';
 
-import { useEffect, useState } from 'react';
+import { useSyncExternalStore } from 'react';
 import { useTheme } from 'next-themes';
 import { Button } from '@/components/ui/button';
+
+const subscribe = () => () => {};
+
+/**
+ * false on the server and during hydration, true on the client afterwards —
+ * without setting state in an effect (useSyncExternalStore uses the server
+ * snapshot while hydrating, then re-renders with the client snapshot).
+ */
+function useMounted() {
+  return useSyncExternalStore(subscribe, () => true, () => false);
+}
 
 // Sun/moon toggle. Renders a stable placeholder until mounted to avoid a
 // hydration mismatch (server has no theme knowledge).
 export function ThemeToggle() {
   const { resolvedTheme, setTheme } = useTheme();
-  const [mounted, setMounted] = useState(false);
-  useEffect(() => setMounted(true), []);
+  const mounted = useMounted();
 
   const isDark = resolvedTheme === 'dark';
 
