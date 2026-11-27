@@ -10,9 +10,9 @@ export const dynamic = 'force-dynamic';
 
 function Badge({ tone = 'muted', children }) {
   const tones = {
-    green: 'bg-green-500/15 text-green-600 dark:text-green-400',
+    green: 'bg-green-500/15 text-green-700 dark:text-green-400',
     muted: 'bg-[var(--surface-muted)] text-[var(--text-secondary)]',
-    red: 'bg-red-500/15 text-red-600 dark:text-red-400',
+    red: 'bg-red-500/15 text-red-700 dark:text-red-400',
   };
   return (
     <span className={`inline-block rounded-full px-2 py-0.5 text-xs font-medium ${tones[tone]}`}>
@@ -85,12 +85,29 @@ export default async function CoursesPage() {
                         </div>
                       </td>
                       <td className="px-4 py-3 text-right whitespace-nowrap">
-                        <span className="text-[var(--text-muted)] line-through">
-                          {formatMoney(c.price)}
-                        </span>{' '}
-                        <span className="font-semibold text-[var(--text-primary)]">
-                          {formatMoney(c.sellPrice)}
-                        </span>
+                        {!(Number(c.sellPrice) > 0) ? (
+                          // Unpriced courses are hidden from the public form.
+                          <span
+                            title="ยังไม่ตั้งราคา (ไม่แสดงในฟอร์ม)"
+                            className="text-[var(--text-muted)]"
+                          >
+                            —
+                          </span>
+                        ) : (
+                          <>
+                            {/* Struck list price only when there is a discount. */}
+                            {Number(c.price) > Number(c.sellPrice) ? (
+                              <>
+                                <span className="text-[var(--text-muted)] line-through">
+                                  {formatMoney(c.price)}
+                                </span>{' '}
+                              </>
+                            ) : null}
+                            <span className="font-semibold text-[var(--text-primary)]">
+                              {formatMoney(c.sellPrice)}
+                            </span>
+                          </>
+                        )}
                       </td>
                       <td className="px-4 py-3">
                         {promoActive ? (

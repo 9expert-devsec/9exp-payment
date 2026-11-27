@@ -116,7 +116,7 @@ export function CourseEditForm({ id, initial }) {
                 {...register('price')}
               />
               {errors.price && (
-                <span className="text-xs text-red-500">{errors.price.message}</span>
+                <span className="text-xs text-red-600 dark:text-red-400">{errors.price.message}</span>
               )}
             </div>
             <div className="flex flex-col gap-1.5">
@@ -132,7 +132,7 @@ export function CourseEditForm({ id, initial }) {
                 นี่คือยอดที่ลูกค้าจ่ายจริง — <b>รวม VAT 7% แล้ว</b> ไม่ใช่ราคาก่อนภาษี
               </span>
               {errors.sellPrice && (
-                <span className="text-xs text-red-500">
+                <span className="text-xs text-red-600 dark:text-red-400">
                   {errors.sellPrice.message}
                 </span>
               )}
@@ -157,7 +157,7 @@ export function CourseEditForm({ id, initial }) {
               <span>{formatMoney(sellPrice)}</span>
             </div>
             {promoSavings > 0 && (
-              <div className="mt-1 flex justify-between text-green-600 dark:text-green-400">
+              <div className="mt-1 flex justify-between text-green-700 dark:text-green-400">
                 <span>ประหยัด</span>
                 <span>{formatMoney(promoSavings)}</span>
               </div>
@@ -165,7 +165,7 @@ export function CourseEditForm({ id, initial }) {
           </div>
 
           {warnSellGtPrice && (
-            <p className="text-xs text-amber-600 dark:text-amber-400">
+            <p className="text-xs text-amber-700 dark:text-amber-400">
               ⚠ ราคาขายสูงกว่าราคาเต็ม — ตรวจสอบอีกครั้ง (ไม่บล็อกการบันทึก)
             </p>
           )}
@@ -186,7 +186,7 @@ export function CourseEditForm({ id, initial }) {
             </div>
           </div>
           {onlyOneDate && (
-            <p className="text-xs text-amber-600 dark:text-amber-400">
+            <p className="text-xs text-amber-700 dark:text-amber-400">
               ⚠ กำหนดวันเพียงด้านเดียว — ช่วงโปรโมชันจะนับจากวันที่ระบุถึงไม่จำกัด
               (แนะนำให้ระบุทั้งสองวัน)
             </p>
@@ -196,7 +196,7 @@ export function CourseEditForm({ id, initial }) {
             <Label htmlFor="notes">หมายเหตุ</Label>
             <Textarea id="notes" rows={3} {...register('notes')} />
             {errors.notes && (
-              <span className="text-xs text-red-500">{errors.notes.message}</span>
+              <span className="text-xs text-red-600 dark:text-red-400">{errors.notes.message}</span>
             )}
           </div>
 
@@ -209,7 +209,7 @@ export function CourseEditForm({ id, initial }) {
               <Label htmlFor="sortOrder">ลำดับการแสดง</Label>
               <Input id="sortOrder" type="number" step="1" {...register('sortOrder')} />
               {errors.sortOrder && (
-                <span className="text-xs text-red-500">
+                <span className="text-xs text-red-600 dark:text-red-400">
                   {errors.sortOrder.message}
                 </span>
               )}
@@ -222,8 +222,8 @@ export function CourseEditForm({ id, initial }) {
         <Button type="submit" size="lg" disabled={isSubmitting}>
           {isSubmitting ? 'กำลังบันทึก…' : 'บันทึก'}
         </Button>
-        {saved && <span className="text-sm text-green-600 dark:text-green-400">บันทึกแล้ว</span>}
-        {saveError && <span className="text-sm text-red-500">{saveError}</span>}
+        {saved && <span className="text-sm text-green-700 dark:text-green-400">บันทึกแล้ว</span>}
+        {saveError && <span className="text-sm text-red-600 dark:text-red-400">{saveError}</span>}
       </div>
     </form>
   );

@@ -30,7 +30,7 @@ export function SyncButton({ action }) {
         </span>
       ) : null}
       {result && !result.ok ? (
-        <span className="text-sm text-red-500">ซิงค์ล้มเหลว: {result.error}</span>
+        <span className="text-sm text-red-600 dark:text-red-400">ซิงค์ล้มเหลว: {result.error}</span>
       ) : null}
     </div>
   );
