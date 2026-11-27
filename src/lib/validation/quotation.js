@@ -159,12 +159,39 @@ export const quotationFormSchema = z
       });
     }
 
+    // ---- Branch ----
+    // The form stores "สำนักงานใหญ่" or "สาขาที่ 00001". A branch value must
+    // carry exactly 5 digits — the Revenue Department's branch-number format —
+    // so a forged/odd value like "สาขาที่ 12" never prints on a tax document.
+    const branch = data.invoice.branch?.trim() || '';
+    if (branch.startsWith('สาขาที่') && !/^สาขาที่\s?\d{5}$/.test(branch)) {
+      ctx.addIssue({
+        code: 'custom',
+        path: ['invoice', 'branch'],
+        message: 'เลขที่สาขาต้องเป็นตัวเลข 5 หลัก',
+      });
+    }
+
     // ---- Address (required for both types; it prints on the document) ----
     if (!data.invoice.addressLine?.trim()) {
       ctx.addIssue({
         code: 'custom',
         path: ['invoice', 'addressLine'],
         message: 'กรุณากรอกที่อยู่',
+      });
+    }
+    if (!data.invoice.subDistrict?.trim()) {
+      ctx.addIssue({
+        code: 'custom',
+        path: ['invoice', 'subDistrict'],
+        message: 'กรุณากรอกแขวง / ตำบล',
+      });
+    }
+    if (!data.invoice.district?.trim()) {
+      ctx.addIssue({
+        code: 'custom',
+        path: ['invoice', 'district'],
+        message: 'กรุณากรอกเขต / อำเภอ',
       });
     }
     if (!data.invoice.province?.trim()) {

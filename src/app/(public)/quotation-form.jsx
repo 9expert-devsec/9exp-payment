@@ -87,7 +87,8 @@ export function QuotationForm({ courses }) {
       attendees: [{ ...EMPTY_PERSON }],
       coordinatorIsAttending: false,
       invoice: {
-        type: 'individual',
+        // Most online-course quotations are for companies (agreed 2026-11-27).
+        type: 'corporate',
         companyName: '',
         branch: '',
         taxId: '',
@@ -656,11 +657,19 @@ export function QuotationForm({ courses }) {
                     {...register('invoice.addressLine')}
                   />
                 </Field>
-                <Field id="subDistrict" label="แขวง / ตำบล" error={errors.invoice?.subDistrict}>
-                  <PublicInput id="subDistrict" {...register('invoice.subDistrict')} />
+                <Field id="subDistrict" label="แขวง / ตำบล" required error={errors.invoice?.subDistrict}>
+                  <PublicInput
+                    id="subDistrict"
+                    invalid={errors.invoice?.subDistrict}
+                    {...register('invoice.subDistrict')}
+                  />
                 </Field>
-                <Field id="district" label="เขต / อำเภอ" error={errors.invoice?.district}>
-                  <PublicInput id="district" {...register('invoice.district')} />
+                <Field id="district" label="เขต / อำเภอ" required error={errors.invoice?.district}>
+                  <PublicInput
+                    id="district"
+                    invalid={errors.invoice?.district}
+                    {...register('invoice.district')}
+                  />
                 </Field>
                 <Field id="province" label="จังหวัด" required error={errors.invoice?.province}>
                   <PublicSelect
