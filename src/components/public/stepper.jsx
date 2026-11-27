@@ -21,7 +21,7 @@ export function Stepper({ current, className }) {
               <li
                 aria-hidden="true"
                 className={cn(
-                  'h-0.5 w-10 shrink-0 rounded',
+                  'h-0.5 w-16 shrink-0 rounded',
                   n <= current ? 'bg-[var(--success)]' : 'bg-[var(--border-strong)]'
                 )}
               />

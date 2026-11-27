@@ -46,10 +46,7 @@ export default async function PublicQuotationPage() {
     return (
       <div className="mx-auto max-w-[720px] px-4 py-10 lg:py-16">
         <section className="rounded-2xl border border-[var(--surface-border)] bg-white px-6 py-10 text-center lg:px-10 lg:py-14">
-          <span className="font-en inline-block rounded-full bg-[var(--brand-tint)] px-3 py-1 text-xs font-bold tracking-wider text-[var(--9e-action)]">
-            ONLINE VIDEO COURSE
-          </span>
-          <h1 className="font-thai mt-4 text-2xl font-bold text-[var(--text-primary)]">
+          <h1 className="font-thai text-2xl font-bold text-[var(--text-primary)]">
             ขณะนี้ยังไม่มีหลักสูตรเปิดให้ขอใบเสนอราคา
           </h1>
           <p className="mt-2 text-sm text-[var(--text-secondary)]">

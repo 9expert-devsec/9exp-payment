@@ -1,12 +1,14 @@
 import Link from 'next/link';
 import { MailIcon, PhoneIcon } from '@/components/public/icons';
+import { StickyHeader } from '@/components/public/sticky-header';
 import { PUBLIC_EMAIL, PUBLIC_PHONE, PUBLIC_PHONE_TEL } from '@/lib/public-contact';
 
 /**
  * Shell for the public (customer-facing) surface. Separate from the admin
  * layout: no sidebar, no session, no theme toggle — and always light (see
  * src/app/providers.jsx). A customer arriving from an email link gets a plain
- * branded page.
+ * branded page. The header is sticky (see StickyHeader); its height is the
+ * --public-header-h token.
  *
  * The root layout's <title> says "— Admin", so every public page sets its own.
  */
@@ -15,8 +17,8 @@ export default function PublicLayout({ children }) {
 
   return (
     <div className="flex min-h-full flex-1 flex-col bg-[var(--public-page-bg)] text-[var(--text-primary)]">
-      <header className="border-b border-[var(--surface-border)] bg-white">
-        <div className="mx-auto flex h-[60px] max-w-[720px] items-center justify-between px-4 lg:h-[72px] lg:max-w-[1248px] lg:px-6">
+      <StickyHeader>
+        <div className="mx-auto flex h-full max-w-[720px] items-center justify-between px-4 lg:max-w-[1248px] lg:px-6">
           <div className="flex items-center gap-4">
             <Link href="/" aria-label="9Expert — หน้าแรกใบเสนอราคา" className="shrink-0">
               {/* eslint-disable-next-line @next/next/no-img-element */}
@@ -53,7 +55,7 @@ export default function PublicLayout({ children }) {
             <PhoneIcon className="h-5 w-5" />
           </a>
         </div>
-      </header>
+      </StickyHeader>
 
       <main className="flex-1">{children}</main>
 

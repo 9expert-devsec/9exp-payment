@@ -139,7 +139,7 @@ export function SectionCard({ id, number, title, subtitle, className, children }
     <section
       id={id}
       className={cn(
-        'scroll-mt-6 rounded-2xl border border-[var(--surface-border)] bg-white px-4 py-5 lg:p-7',
+        'scroll-mt-[calc(var(--public-header-h)+16px)] rounded-2xl border border-[var(--surface-border)] bg-white px-4 py-5 lg:p-7',
         className
       )}
     >
@@ -183,16 +183,17 @@ export function Chip({ tone = 'neutral', className, children }) {
   );
 }
 
-/** Amber notice with an info icon (the VAT notice). */
-export function WarningNote({ className, children }) {
+/** Amber notice with an info icon (the VAT notice). `compact` = 11px, 8x12. */
+export function WarningNote({ compact, className, children }) {
   return (
     <div
       className={cn(
-        'flex gap-2 rounded-xl bg-[var(--warning-bg)] px-3.5 py-3 text-xs leading-relaxed text-[var(--warning)]',
+        'flex gap-2 rounded-xl bg-[var(--warning-bg)] leading-relaxed text-[var(--warning)]',
+        compact ? 'px-3 py-2 text-[11px]' : 'px-3.5 py-3 text-xs',
         className
       )}
     >
-      <InfoIcon className="mt-0.5 h-4 w-4 shrink-0" />
+      <InfoIcon className={cn('mt-0.5 shrink-0', compact ? 'h-3.5 w-3.5' : 'h-4 w-4')} />
       <p>{children}</p>
     </div>
   );

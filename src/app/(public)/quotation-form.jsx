@@ -276,20 +276,16 @@ export function QuotationForm({ courses }) {
       >
         {/* ================= Hero ================= */}
         <MobileProgress current={1} className="mb-4 lg:hidden" />
-        <div className="mb-6 lg:mb-8 lg:flex lg:items-end lg:justify-between lg:gap-8">
-          <div>
-            <span className="font-en mb-3 hidden rounded-full bg-[var(--brand-tint)] px-3 py-1 text-xs font-bold tracking-wider text-[var(--9e-action)] lg:inline-block">
-              ONLINE VIDEO COURSE
-            </span>
-            <h1 className="font-thai text-2xl font-bold text-[var(--text-primary)] lg:text-[32px] lg:leading-tight">
-              ขอใบเสนอราคาหลักสูตรออนไลน์
-            </h1>
-            <p className="mt-2 text-sm text-[var(--text-secondary)] lg:text-base">
-              กรอกข้อมูลไม่กี่ขั้นตอน รับใบเสนอราคา (PDF) ทางอีเมลได้ทันที
-            </p>
-          </div>
-          <Stepper current={1} className="hidden shrink-0 lg:flex" />
+        <div className="mb-6 lg:mb-0">
+          <h1 className="font-thai text-2xl font-bold text-[var(--text-primary)] lg:text-[32px] lg:leading-tight">
+            ขอใบเสนอราคาหลักสูตรออนไลน์
+          </h1>
+          <p className="mt-2 text-sm text-[var(--text-secondary)] lg:text-base">
+            กรอกข้อมูลไม่กี่ขั้นตอน รับใบเสนอราคา (PDF) ทางอีเมลได้ทันที
+          </p>
         </div>
+        {/* Desktop stepper: its own centered row, same placement as step 2. */}
+        <Stepper current={1} className="hidden justify-center lg:my-8 lg:flex" />
 
         <div className="lg:grid lg:grid-cols-[minmax(0,1fr)_400px] lg:items-start lg:gap-8">
           <div className="flex min-w-0 flex-col gap-4 lg:gap-6">
@@ -719,14 +715,12 @@ export function QuotationForm({ courses }) {
           </div>
 
           {/* ================= Desktop summary ================= */}
-          <aside className="hidden lg:sticky lg:top-6 lg:block">
-            <DesktopSummary
-              course={selectedCourse}
-              pricing={pricing}
-              pending={reviewing}
-              error={formError}
-            />
-          </aside>
+          <DesktopSummary
+            course={selectedCourse}
+            pricing={pricing}
+            pending={reviewing}
+            error={formError}
+          />
         </div>
 
         {/* ================= Mobile summary bar ================= */}

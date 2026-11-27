@@ -21,7 +21,7 @@ import {
   ZoomOutIcon,
 } from '@/components/public/icons';
 import { BottomSheet } from '@/components/public/sheet';
-import { TotalBox } from './price-summary';
+import { DESKTOP_STICKY_CARD, TotalBox } from './price-summary';
 
 // A4 at 96 dpi — the size the document template is laid out for.
 const PAGE_W = 794;
@@ -199,9 +199,9 @@ function FullscreenViewer({ html, onClose }) {
 // Details column
 // ---------------------------------------------------------------------------
 
-function Group({ title, onEdit, children }) {
+function Group({ title, onEdit, compact, children }) {
   return (
-    <div className="py-5 first:pt-0">
+    <div className={cn('first:pt-0', compact ? 'py-3' : 'py-5')}>
       <div className="mb-1.5 flex items-center justify-between">
         <span className="text-xs text-[var(--text-muted)]">{title}</span>
         <button
@@ -218,23 +218,24 @@ function Group({ title, onEdit, children }) {
   );
 }
 
-function DetailGroups({ summary, onEdit }) {
+function DetailGroups({ summary, onEdit, compact }) {
   const s = summary;
+  const g = { compact };
   return (
     <div className="divide-y divide-[var(--surface-border)]">
-      <Group title="หลักสูตร" onEdit={() => onEdit('card-course')}>
+      <Group {...g} title="หลักสูตร" onEdit={() => onEdit('card-course')}>
         <p className="font-semibold text-[var(--text-primary)]">{s.courseName}</p>
         <p className="mt-1 text-sm text-[var(--text-secondary)]">
           <span className="font-en">{formatMoney(s.sellPrice)} ฿</span> / ท่าน (รวม VAT) · {s.seats} ท่าน
         </p>
       </Group>
-      <Group title="ผู้ติดต่อ" onEdit={() => onEdit('card-contact')}>
+      <Group {...g} title="ผู้ติดต่อ" onEdit={() => onEdit('card-contact')}>
         <p className="font-semibold text-[var(--text-primary)]">{s.coordinatorName}</p>
         <p className="mt-1 break-words text-sm text-[var(--text-secondary)]">
           {s.coordinatorEmail} · {s.coordinatorPhone}
         </p>
       </Group>
-      <Group title={`ผู้เรียน ${s.seats} ท่าน`} onEdit={() => onEdit('card-attendees')}>
+      <Group {...g} title={`ผู้เรียน ${s.seats} ท่าน`} onEdit={() => onEdit('card-attendees')}>
         <ul className="flex flex-col gap-1 text-sm text-[var(--text-secondary)]">
           {s.attendeeEmails.map((email, i) => (
             <li key={`${email}-${i}`} className="break-words">
@@ -246,7 +247,7 @@ function DetailGroups({ summary, onEdit }) {
           ) : null}
         </ul>
       </Group>
-      <Group title="ออกในนาม" onEdit={() => onEdit('card-invoice')}>
+      <Group {...g} title="ออกในนาม" onEdit={() => onEdit('card-invoice')}>
         <p className="font-semibold text-[var(--text-primary)]">{s.billedTo}</p>
         {s.taxId ? (
           <p className="mt-1 text-sm text-[var(--text-secondary)]">
@@ -272,9 +273,9 @@ function DetailsSkeleton() {
   );
 }
 
-function TotalLines({ summary }) {
+function TotalLines({ summary, compact }) {
   return (
-    <div className="mb-3 flex flex-col gap-2 text-sm">
+    <div className={cn('flex flex-col', compact ? 'mb-2 gap-1.5 text-[13px]' : 'mb-3 gap-2 text-sm')}>
       <div className="flex justify-between">
         <span className="text-[var(--text-secondary)]">รวมเป็นเงิน</span>
         <span className="font-en font-medium">{formatMoney(summary.subtotal)}</span>
@@ -337,18 +338,17 @@ export function ReviewStep({ html, summary, onBack, onConfirm, pending, error })
     <div className="pb-48 lg:pb-0">
       {/* ---- Hero ---- */}
       <MobileProgress current={2} className="mb-4 lg:hidden" />
-      <div className="mb-6 lg:mb-8 lg:flex lg:items-end lg:justify-between lg:gap-8">
-        <div>
-          {backLink}
-          <h1 className="font-thai mt-3 text-2xl font-bold text-[var(--text-primary)] lg:text-[32px] lg:leading-tight">
-            ตรวจสอบใบเสนอราคา
-          </h1>
-          <p className="mt-2 hidden text-[var(--text-secondary)] lg:block">
-            เอกสารจริงจะออกในรูปแบบนี้ กรุณาตรวจสอบความถูกต้องก่อนยืนยัน
-          </p>
-        </div>
-        <Stepper current={2} className="hidden shrink-0 lg:flex" />
+      <div className="mb-6 lg:mb-0">
+        {backLink}
+        <h1 className="font-thai mt-3 text-2xl font-bold text-[var(--text-primary)] lg:text-[32px] lg:leading-tight">
+          ตรวจสอบใบเสนอราคา
+        </h1>
+        <p className="mt-2 hidden text-[var(--text-secondary)] lg:block">
+          เอกสารจริงจะออกในรูปแบบนี้ กรุณาตรวจสอบความถูกต้องก่อนยืนยัน
+        </p>
       </div>
+      {/* Desktop stepper: its own centered row, same placement as step 1. */}
+      <Stepper current={2} className="hidden justify-center lg:my-8 lg:flex" />
 
       <div className="flex flex-col gap-4 lg:grid lg:grid-cols-[minmax(0,1fr)_400px] lg:items-start lg:gap-8">
         {/* ---- Preview ---- */}
@@ -360,33 +360,41 @@ export function ReviewStep({ html, summary, onBack, onConfirm, pending, error })
         </div>
 
         {/* ---- Details (desktop card) ---- */}
-        <aside className="hidden rounded-2xl border border-[var(--surface-border)] bg-white p-6 lg:sticky lg:top-6 lg:block">
-          <h2 className="font-thai mb-5 text-lg font-bold">รายละเอียดคำขอ</h2>
-          {summary ? <DetailGroups summary={summary} onEdit={onBack} /> : <DetailsSkeleton />}
-          {summary ? (
-            <TotalBox total={summary.total} className="mt-2">
-              <TotalLines summary={summary} />
-            </TotalBox>
-          ) : null}
-          <div className="mt-5">
-            <ConfirmCheck id="confirm-desktop" checked={checked} onChange={setChecked} disabled={!ready || pending} />
+        {/* Compact and capped to the viewport: only the group list scrolls; the
+            total, checkbox and buttons stay pinned at the bottom of the card. */}
+        <aside
+          data-review-card
+          className={cn(
+            'hidden flex-col overflow-hidden rounded-2xl border border-[var(--surface-border)] bg-white p-5 lg:flex',
+            DESKTOP_STICKY_CARD
+          )}
+        >
+          <h2 className="font-thai mb-3 shrink-0 text-base font-semibold">รายละเอียดคำขอ</h2>
+          <div data-review-groups className="-mr-2 min-h-0 flex-1 overflow-y-auto pr-2 [scrollbar-width:thin]">
+            {summary ? <DetailGroups summary={summary} onEdit={onBack} compact /> : <DetailsSkeleton />}
           </div>
-          <DangerAlert className="mt-4">{error}</DangerAlert>
-          <div className="mt-4 flex flex-col gap-3">
-            <PrimaryButton onClick={onConfirm} disabled={!canConfirm}>
+          <div className="flex shrink-0 flex-col gap-3 border-t border-[var(--surface-border)] pt-3">
+            {summary ? (
+              <TotalBox total={summary.total} compact>
+                <TotalLines summary={summary} compact />
+              </TotalBox>
+            ) : null}
+            <ConfirmCheck id="confirm-desktop" checked={checked} onChange={setChecked} disabled={!ready || pending} />
+            <DangerAlert>{error}</DangerAlert>
+            <PrimaryButton className="h-12" onClick={onConfirm} disabled={!canConfirm}>
               {pending ? <SpinnerIcon /> : null}
               ยืนยันและส่งใบเสนอราคา
             </PrimaryButton>
-            <SecondaryButton onClick={() => onBack()} disabled={pending}>
+            <SecondaryButton className="h-12" onClick={() => onBack()} disabled={pending}>
               ย้อนกลับไปแก้ไข
             </SecondaryButton>
-          </div>
-          <div className="mt-4 flex gap-2.5 rounded-xl bg-[var(--surface-muted)] px-3.5 py-3 text-xs leading-relaxed text-[var(--text-secondary)]">
-            <MailIcon className="mt-0.5 h-4 w-4 shrink-0" />
-            <p>
-              ระบบจะออกเลขที่ใบเสนอราคาและส่งไฟล์ PDF ไปที่{' '}
-              <span className="break-words">{email}</span>
-            </p>
+            <div className="flex gap-2 rounded-xl bg-[var(--surface-muted)] px-3 py-2 text-[11px] leading-relaxed text-[var(--text-secondary)]">
+              <MailIcon className="mt-0.5 h-3.5 w-3.5 shrink-0" />
+              <p>
+                ระบบจะออกเลขที่ใบเสนอราคาและส่งไฟล์ PDF ไปที่{' '}
+                <span className="break-words">{email}</span>
+              </p>
+            </div>
           </div>
         </aside>
 

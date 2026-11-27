@@ -65,6 +65,8 @@
   --warning: #b7791f;
   --warning-bg: #fff7e0;
   --border-strong: #b7c3d4;
+  /* Sticky public header height; everything sticky beneath it offsets by this. */
+  --public-header-h: 60px;
 
   /* ---- Backward-compat tokens for the leftover create-next-app landing ---- */
   --background: var(--page-bg);
@@ -126,4 +128,11 @@ body {
   background: var(--page-bg);
   color: var(--text-primary);
   font-family: var(--font-en), var(--font-thai), system-ui, sans-serif;
+}
+
+/* Public header: 60px mobile, 72px from the lg breakpoint (1024px). */
+@media (min-width: 1024px) {
+  :root {
+    --public-header-h: 72px;
+  }
 }
