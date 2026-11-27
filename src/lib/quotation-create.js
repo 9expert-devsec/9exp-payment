@@ -11,17 +11,25 @@ import { isPromotionActive } from './format.js';
 /**
  * Core quotation creation. Deliberately framework-free — no next/headers, no
  * 'use server' — so it can be exercised by a plain node script as well as by the
- * server action. The action is a thin wrapper that supplies the request IP.
+ * server actions. The actions are thin wrappers that supply the request IP.
  *
  * TRUST MODEL: everything here is recomputed from the database. The caller
  * supplies WHO and WHICH COURSE; it does not supply money. No price field is
  * ever read from `values`, so a tampered client cannot move a single satang.
- *
- * @param {object} values      Raw form values (untrusted).
- * @param {object} [options]
- * @param {string} [options.ipAddress]  Client IP, stored for abuse triage only.
  */
-export async function createQuotation(values, { ipAddress = '' } = {}) {
+
+/**
+ * Validate the form values and build everything a quotation is made of — the
+ * course snapshot, people, invoice details and pricing — WITHOUT side effects:
+ * no number is reserved and nothing is inserted. Used both by the review step's
+ * preview (which must never consume a quotation number) and by
+ * createQuotation(), so the previewed document and the issued one are built by
+ * the same code.
+ *
+ * @param {object} values  Raw form values (untrusted).
+ * @returns {Promise<{ok: true, draft: object} | {ok: false, error: string}>}
+ */
+export async function buildQuotationDraft(values) {
   // 1. Validate. A client-side zodResolver pass carries no authority here.
   const parsed = quotationFormSchema.safeParse(values);
   if (!parsed.success) {
@@ -70,6 +78,49 @@ export async function createQuotation(values, { ipAddress = '' } = {}) {
       }))
     : [];
 
+  return {
+    ok: true,
+    draft: {
+      course: courseSnapshot,
+      coordinator: {
+        firstName: data.coordinator.firstName,
+        lastName: data.coordinator.lastName,
+        email: data.coordinator.email,
+        phone: data.coordinator.phone,
+      },
+      attendeesCount: data.attendeesCount,
+      attendeesListProvided: data.attendeesListProvided,
+      attendees,
+      invoice: {
+        type: data.invoice.type,
+        companyName: data.invoice.companyName,
+        branch: data.invoice.branch,
+        taxId: data.invoice.taxId,
+        addressLine: data.invoice.addressLine,
+        subDistrict: data.invoice.subDistrict,
+        district: data.invoice.district,
+        province: data.invoice.province,
+        postalCode: data.invoice.postalCode,
+      },
+      pricing,
+      notes: data.notes || '',
+    },
+  };
+}
+
+/**
+ * Create and persist a quotation: build the draft, then reserve a number and
+ * insert.
+ *
+ * @param {object} values      Raw form values (untrusted).
+ * @param {object} [options]
+ * @param {string} [options.ipAddress]  Client IP, stored for abuse triage only.
+ */
+export async function createQuotation(values, { ipAddress = '' } = {}) {
+  const built = await buildQuotationDraft(values);
+  if (!built.ok) return built;
+  const { draft } = built;
+
   // 5. Reserve the number LAST. nextQuotationNo() is an atomic $inc that CANNOT
   //    be rolled back — every call consumes a number permanently. Reserving
   //    before the validation and lookups above would burn numbers on failed
@@ -85,29 +136,7 @@ export async function createQuotation(values, { ipAddress = '' } = {}) {
   const doc = await Quotation.create({
     quotationNo,
     publicToken,
-    course: courseSnapshot,
-    coordinator: {
-      firstName: data.coordinator.firstName,
-      lastName: data.coordinator.lastName,
-      email: data.coordinator.email,
-      phone: data.coordinator.phone,
-    },
-    attendeesCount: data.attendeesCount,
-    attendeesListProvided: data.attendeesListProvided,
-    attendees,
-    invoice: {
-      type: data.invoice.type,
-      companyName: data.invoice.companyName,
-      branch: data.invoice.branch,
-      taxId: data.invoice.taxId,
-      addressLine: data.invoice.addressLine,
-      subDistrict: data.invoice.subDistrict,
-      district: data.invoice.district,
-      province: data.invoice.province,
-      postalCode: data.invoice.postalCode,
-    },
-    pricing,
-    notes: data.notes || '',
+    ...draft,
     ipAddress,
   });
 

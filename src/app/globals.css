@@ -56,6 +56,16 @@
   --motion-reveal: 300ms;
   --motion-page: 500ms;
 
+  /* ---- Public quotation surface (light only; public routes force light) ---- */
+  --public-page-bg: #f3f6fb;
+  --brand-tint: #eaf3ff;
+  --success: #16a34a;
+  --success-bg: #e8f7ee;
+  --danger: #e5484d;
+  --warning: #b7791f;
+  --warning-bg: #fff7e0;
+  --border-strong: #b7c3d4;
+
   /* ---- Backward-compat tokens for the leftover create-next-app landing ---- */
   --background: var(--page-bg);
   --foreground: var(--text-primary);

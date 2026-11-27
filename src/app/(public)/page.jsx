@@ -35,18 +35,9 @@ export default async function PublicQuotationPage() {
     isPromoActive: isPromotionActive(c),
   }));
 
-  return (
-    <div className="mx-auto max-w-6xl px-4 py-6 sm:py-10">
-      <div className="mb-6 sm:mb-8">
-        <h1 className="text-2xl font-bold text-[var(--text-primary)] sm:text-3xl">
-          ขอใบเสนอราคา
-        </h1>
-        <p className="mt-1.5 text-sm text-[var(--text-secondary)]">
-          กรอกข้อมูลด้านล่างเพื่อขอใบเสนอราคาหลักสูตรออนไลน์ ระบบจะออกเลขที่ใบเสนอราคาให้ทันที
-        </p>
-      </div>
-
-      {courses.length === 0 ? (
+  if (courses.length === 0) {
+    return (
+      <div className="mx-auto max-w-[720px] px-4 py-10 lg:max-w-[1248px] lg:px-6">
         <Card className="p-10 text-center">
           <p className="text-[var(--text-secondary)]">
             ขณะนี้ยังไม่มีหลักสูตรเปิดให้ขอใบเสนอราคา
@@ -55,9 +46,9 @@ export default async function PublicQuotationPage() {
             กรุณาติดต่อ training@9expert.co.th หรือโทร 02-219-4304
           </p>
         </Card>
-      ) : (
-        <QuotationForm courses={courses} />
-      )}
-    </div>
-  );
+      </div>
+    );
+  }
+
+  return <QuotationForm courses={courses} />;
 }
